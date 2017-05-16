@@ -32,6 +32,7 @@ const convertor = {
             let _l = l
                 .replace(/^by \[.+/, '')
                 .replace(/^;by \[.+/, '')
+                .replace(/^#\*/, '  *')
                 .replace(/^#/, '* ')
                 .replace(/^\*;/, '* ')
                 .replace(/^\*/, '* ')
@@ -41,12 +42,13 @@ const convertor = {
                 .replace(/^!!!!/, '#### ')
                 .replace(/^!!!/, '### ')
                 .replace(/^!!/, '## ')
+                .replace(/^!/, '## ')
 
-                .replace(/''(.+)''/g, '*$1*')
-                .replace(/\[\[(.+)\|(.+)\]\]/, '[$1]($2)')
-                .replace(/\[\[(.+)\]\]/, '[$1]($1)')
+                .replace(/''(.+?)''/g, '*$1*')
+                .replace(/\[\[(.+?)\|(.+)\]\]/g, '[$1]($2)')
+                .replace(/\[\[(.+?)\]\]/g, '[$1]($1)')
 
-                .replace(/\[img\[(.+)\]\]/, '![]($1)')
+                .replace(/\[img\[(.+?)\]\]/g, '![]($1)')
 
             output(_l);
         }
@@ -60,9 +62,12 @@ function convert(tiddler) {
     output(`# ${tiddler.title}
     `)
 
-    let tags = tiddler.tags ? tiddler.tags.replace(/\[\[(.+)\]\]/, '[$1]($1)') : ''
-    output(`> tags: ${tags}
-    `)
+    let tags = tiddler.tags ? tiddler.tags
+        .split(' ')
+        .join(', ')
+        .replace(/\[\[(.+)\]\]/, '$1') : '';
+
+    output(`> tags: ${tags}\n`)
 
     if (Object.keys(convertor).indexOf(tiddler.type) !== -1) {
         convertor[tiddler.type](tiddler);
@@ -76,7 +81,7 @@ function convert(tiddler) {
 
 
 makeDir(outputPath).then(() => {
-    fs.writeFileSync(outputFile,'');
+    fs.writeFileSync(outputFile, '');
 
     for (let t of tiddlers) {
         convert(t);
