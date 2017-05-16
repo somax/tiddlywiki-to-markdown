@@ -2,11 +2,9 @@ const tiddlers = require('./input/tiddlers.json');
 const fs = require('fs');
 const makeDir = require('make-dir');
 
-const outputPath = 'output/';
-const outputFile = outputPath + 'output.md';
-const outputWS = fs.createWriteStream(outputFile, {
-    flags: 'a' // 'a' means appending (old data will be preserved)
-})
+const outputPath = process.argv[2] || 'output/';
+const outputFile = outputPath + '/output.md';
+let outputWS;
 
 function output(l) {
     // console.log(l);
@@ -19,19 +17,19 @@ const convertor = {
         // write to file
         var data = tiddler.text.replace(/^data:image\/\w+;base64,/, "");
         var buf = new Buffer(data, 'base64');
-        fs.writeFileSync(outputPath + tiddler.title, buf);
+        fs.writeFileSync(`${outputPath}/${tiddler.title}`, buf);
     },
     "image/svg+xml": (tiddler) => {
         // write to file
-        fs.writeFileSync(outputPath + tiddler.title, tiddler.text)
+        fs.writeFileSync(`${outputPath}/${tiddler.title}`, tiddler.text)
     },
     "text/vnd.tiddlywiki": (tiddler) => {
         let lines = tiddler.text.split('\n');
 
         for (let l of lines) {
             let _l = l
-                .replace(/^by \[.+/, '')
-                .replace(/^;by \[.+/, '')
+                .replace(/by(\ *)\[\[(.+?)]]/g, '> by $2')
+                .replace(/^;/, '')
                 .replace(/^#\*/, '  *')
                 .replace(/^#/, '* ')
                 .replace(/^\*;/, '* ')
@@ -45,8 +43,9 @@ const convertor = {
                 .replace(/^!/, '## ')
 
                 .replace(/''(.+?)''/g, '*$1*')
-                .replace(/\[\[(.+?)\|(.+)\]\]/g, '[$1]($2)')
-                .replace(/\[\[(.+?)\]\]/g, '[$1]($1)')
+                .replace(/\[\[(.+?)\|(.+)\]\]/g, '[$1](#$2)')
+                .replace(/\[\[(.+?)\]\]/g, '[$1](#$1)')
+                .replace(/\]\(#http.*?/g, '](http')
 
                 .replace(/\[img\[(.+?)\]\]/g, '![]($1)')
 
@@ -81,6 +80,9 @@ function convert(tiddler) {
 
 
 makeDir(outputPath).then(() => {
+    outputWS = fs.createWriteStream(outputFile, {
+        flags: 'a' // 'a' means appending (old data will be preserved)
+    })
     fs.writeFileSync(outputFile, '');
 
     for (let t of tiddlers) {
