@@ -1,0 +1,20 @@
+{
+  "name": "tiddlywiki2markdown",
+  "version": "0.1.0",
+  "description": "将 tiddlywiki 格式转成 markdown",
+  "main": "index.js",
+  "dependencies": {
+    "make-dir": "^1.0.0",
+    "pify": "^2.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tiddlywiki",
+    "markdown"
+  ],
+  "author": "MaXiaojun <somaxj@163.com>",
+  "license": "ISC"
+}
